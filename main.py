@@ -92,26 +92,40 @@ class Block1(pygame.sprite.Sprite):
 # Create a sprite group and add the player
 all_sprites = pygame.sprite.Group()
 
-
 with open("map.json") as file:
     maps = json.load(file)
-player_start = [(250, 300)]
-level = 1
+player_start = [(250, 300), (250, -200), (600, 300)]
+level = 0
 blocks_list = []
 block_types = [
     Block1,
 ]
 
-map = maps[0]
-for r, row in enumerate(map):
-    for c, block in enumerate(row):
-        if block != 0:
-            blocks_list.append(block_types[block - 1](c * 32 + 16, r * 32 + 16))
+# map = maps[0]
+# for r, row in enumerate(map):
+#     for c, block in enumerate(row):
+#         if block != 0:
+#             blocks_list.append(block_types[block - 1](c * 32 + 16, r * 32 + 16))
+
 player = Player()
 all_sprites.add(player)
-for block in blocks_list:
-    all_sprites.add(block)
 
+def change_level(level_num):
+    blocks_list.clear()
+    all_sprites.empty()
+    player.y_vel = 0
+    player.x_vel = 0
+    all_sprites.add(player)
+    player.rect.x = player_start[level][0]
+    player.rect.y = player_start[level][1]
+    map = maps[level_num]
+    for r, row in enumerate(map):
+        for c, block in enumerate(row):
+            if block != 0:
+                blocks_list.append(block_types[block - 1](c * 32 + 16, r * 32 + 16))
+    for block in blocks_list:
+        all_sprites.add(block)
+change_level(0)
 
 # Main game loop
 running = True
@@ -123,7 +137,9 @@ while running:
 
     # Update sprites
     all_sprites.update()
-
+    if player.rect.y > 900:
+        level += 1
+        change_level(level)
     # Draw everything
     screen.fill(WHITE)  # Clear the screen
     all_sprites.draw(screen)  # Draw sprites onto the screen
