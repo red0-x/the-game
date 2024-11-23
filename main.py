@@ -39,8 +39,9 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_DOWN]:
             self.rect.y += 5
 
+next_id = 1
 class Block1(pygame.sprite.Sprite):
-    def __init__(self, id_num, x, y):
+    def __init__(self, x, y):
         super().__init__()
         # Load an image or create a surface
         self.image = pygame.image.load("images/tile1.png").convert()
@@ -48,20 +49,22 @@ class Block1(pygame.sprite.Sprite):
         # Set a rect for positioning
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-        self.id_num = id_num
+        global next_id
+        self.id_num = next_id
+        next_id += 1
 
 
 # Create a sprite group and add the player
 all_sprites = pygame.sprite.Group()
 player = Player()
-blocks_lists_x = [100, 200]
-blocks_lists_y = [100, 500]
-blocks_list = []
-for i in range(len(blocks_lists_x)):
-    blocks_list.append(Block1(i, blocks_lists_x[i], blocks_lists_y[i]))
+
+blocks_list = [
+    Block1(100, 100),
+    Block1(100, 500),
+]
 all_sprites.add(player)
-for i in range(len(blocks_list)):
-    all_sprites.add(blocks_list[i])
+for block in blocks_list:
+    all_sprites.add(block)
 
 
 # Main game loop
