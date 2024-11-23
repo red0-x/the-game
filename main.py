@@ -7,7 +7,7 @@ pygame.init()
 
 # Screen dimensions
 SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_HEIGHT = 640
 
 # Create the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -97,11 +97,6 @@ class Block1(pygame.sprite.Sprite):
 # Create a sprite group and add the player
 all_sprites = pygame.sprite.Group()
 
-# blocks_list = [
-#     Block1(100, 100),
-#     Block1(100, 500),
-#     Block1(400, 500),
-# ]
 
 with open("map.json") as file:
     maps = json.load(file)
@@ -110,14 +105,8 @@ blocks_list = []
 block_types = [
     Block1,
 ]
-# blocks_list = [
-#     Block1(100, 100),
-#     Block1(100, 500),
-#     Block1(400, 500),
-#     Block1(430, 500),
-#     Block1(460, 500),
-# ]
-map = maps["maps"]["map1"]
+
+map = maps[0]
 for r, row in enumerate(map):
     for c, block in enumerate(row):
         if block != 0:
