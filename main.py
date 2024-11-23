@@ -44,9 +44,9 @@ class Player(pygame.sprite.Sprite):
             self.x_vel += self.x_vel * -0.10
         elif abs(self.x_vel) < 0.51:
             self.x_vel = 0
-        elif self.x_vel < 1.5 and self.x_vel > 0:
+        elif self.x_vel < 1.5 and self.x_vel > 0.51:
             self.x_vel -= 0.5
-        elif self.x_vel > -1.5 and self.x_vel < 0:
+        elif self.x_vel > -1.5 and self.x_vel < 0.51:
             self.x_vel += 0.5
 
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
