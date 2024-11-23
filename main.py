@@ -8,12 +8,16 @@ pygame.init()
 # Screen dimensions
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 640
-
+gross_elevation = 1000
 # Create the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Pygame Sprite Example")
-idle4 = pygame.image.load("images/player/idle/idle-04.png").convert()
-idle4_ = pygame.transform.flip(idle4, True, False)
+idle4 = pygame.image.load("images/player/idle/sprite_0.png")
+idle4_ = pygame.image.load("images/player/idle/sprite_1.png")
+bg1 = pygame.transform.scale_by(pygame.image.load("images/background/01background.png"), 2).convert()
+
+bg2 = pygame.image.load("images/background/02background.png").convert()
+bg3 = pygame.image.load("images/background/03background.png").convert()
 # Define a color
 WHITE = (255, 255, 255)
 
@@ -23,7 +27,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         # Load an image or create a surface
-        self.image = pygame.image.load("images/player/idle/idle-04.png").convert()
+        self.image = pygame.image.load("images/player/idle/idle-04.png")
 
         # Set a rect for positioning
         self.rect = self.image.get_rect()
@@ -94,7 +98,7 @@ all_sprites = pygame.sprite.Group()
 
 with open("map.json") as file:
     maps = json.load(file)
-player_start = [(250, 300), (250, -200), (600, 300)]
+player_start = [(320, 0), (250, -200), (600, 300)]
 level = 0
 blocks_list = []
 block_types = [
@@ -137,12 +141,15 @@ while running:
 
     # Update sprites
     all_sprites.update()
+
     if player.rect.y > 900:
         level += 1
         change_level(level)
+        gross_elevation -= 50
     # Draw everything
     screen.fill(WHITE)  # Clear the screen
-    all_sprites.draw(screen)  # Draw sprites onto the screen
+    screen.blit(bg1, (0, 0))
+    all_sprites.draw(screen)
 
     # Flip the display
     pygame.display.flip()
