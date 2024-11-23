@@ -27,7 +27,7 @@ class Player(pygame.sprite.Sprite):
 
         # Set a rect for positioning
         self.rect = self.image.get_rect()
-        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+        self.rect.center = (player_start[0][0], player_start[0][1])
         self.y_vel = 0
         self.x_vel = 0
 
@@ -95,7 +95,8 @@ all_sprites = pygame.sprite.Group()
 
 with open("map.json") as file:
     maps = json.load(file)
-
+player_start = [(250, 300)]
+level = 1
 blocks_list = []
 block_types = [
     Block1,
