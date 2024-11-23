@@ -14,10 +14,10 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Pygame Sprite Example")
 idle4 = pygame.image.load("images/player/idle/sprite_0.png")
 idle4_ = pygame.image.load("images/player/idle/sprite_1.png")
-bg1 = pygame.transform.scale_by(pygame.image.load("images/background/01background.png"), 2).convert()
+bg1 = pygame.transform.scale_by(pygame.image.load("images/background/01background.png"), 2).convert_alpha()
+bg2 = pygame.transform.scale_by(pygame.image.load("images/background/02background.png"), 2).convert_alpha()
+bg3 = pygame.transform.scale_by(pygame.image.load("images/background/03background.png"), 2).convert_alpha()
 
-bg2 = pygame.image.load("images/background/02background.png").convert()
-bg3 = pygame.image.load("images/background/03background.png").convert()
 # Define a color
 WHITE = (255, 255, 255)
 
@@ -145,10 +145,15 @@ while running:
     if player.rect.y > 900:
         level += 1
         change_level(level)
-        gross_elevation -= 50
+
     # Draw everything
+
+    gross_elevation = 1000 + 20 * level + player.rect.y / 32
+
     screen.fill(WHITE)  # Clear the screen
     screen.blit(bg1, (0, 0))
+    screen.blit(bg2, (0, (1000 - gross_elevation) * 0.05))
+    screen.blit(bg3, (0, (1000 - gross_elevation) * 0.1))
     all_sprites.draw(screen)
 
     # Flip the display
