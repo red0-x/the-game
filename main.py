@@ -33,7 +33,6 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         keys = pygame.key.get_pressed()
-        move_x = 0
         if self.x_vel > 0:
             self.image = idle4
         elif self.x_vel < 0:
@@ -54,27 +53,23 @@ class Player(pygame.sprite.Sprite):
             self.x_vel-= 0.75
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             self.x_vel += 0.75
-        # if keys[pygame.K_UP] or keys[pygame.K_W]:
-        #     move_y = - 5
-        # if keys[pygame.K_DOWN] or keys[pygame.K_S]:
-        #     move_y = 5
 
         # Move the player rect
-        self.rect.x += move_x
+        self.rect.x += self.x_vel
         if pygame.sprite.spritecollide(self, blocks_list, False):
             # Undo movement if collision occurs
-            self.rect.x -= move_x
+            self.rect.x -= self.x_vel
+            self.x_vel = 0
 
         
         self.on_ground = False
         self.rect.y += self.y_vel
-        self.rect.x += self.x_vel
         if pygame.sprite.spritecollide(self, blocks_list, False):
             # Undo movement if collision occurs
             self.rect.y -= self.y_vel
             if self.y_vel > 0:
-                self.y_vel = 0
                 self.on_ground = True
+            self.y_vel = 0
             
         if (keys[pygame.K_UP] or keys[pygame.K_w]) and self.on_ground:
             self.y_vel = -20
