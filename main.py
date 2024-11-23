@@ -2,7 +2,6 @@ import pygame
 import sys
 import asyncio
 import os
-import input_
 
 # Initialize Pygame
 pygame.init()
@@ -14,7 +13,7 @@ BACKGROUND_COLOR = (0, 0, 0)  # Black background
 # Initialize screen
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Pygame Game Template")
-image = pygame.image.load("images/robotDrawing.png").convert()
+image = pygame.image.load("images/placeholder.png").convert()
 
 # Clock to control frame rate
 clock = pygame.time.Clock()
@@ -26,7 +25,15 @@ RED = (255, 0, 0)
 # Define a basic player object
 player = pygame.Rect(800 // 2, 600 // 2, 50, 50)  # A rectangle representing the player
 player_speed = 5  # Movement speed
-
+def handle_input(keys, player, player_speed):
+    if keys[pygame.K_UP]:
+        player.y -= player_speed
+    if keys[pygame.K_DOWN]:
+        player.y += player_speed
+    if keys[pygame.K_LEFT]:
+        player.x -= player_speed
+    if keys[pygame.K_RIGHT]:
+        player.x += player_speed
 
 async def main():
     """Main game loop."""
@@ -43,7 +50,7 @@ async def main():
 
         # Input Handling
         keys = pygame.key.get_pressed()
-        input_.handle_input(keys, player, player_speed)
+        handle_input(keys, player, player_speed)
 
         # Rendering
         screen.fill(BACKGROUND_COLOR)  # Clear the screen with background color
