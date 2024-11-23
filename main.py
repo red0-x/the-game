@@ -21,7 +21,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         # Load an image or create a surface
-        self.image = pygame.image.load("images/placeholder.png").convert()
+        self.image = pygame.image.load("images/idle-04.png").convert()
 
         # Set a rect for positioning
         self.rect = self.image.get_rect()
