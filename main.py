@@ -114,6 +114,7 @@ for block in blocks_list:
 
 # Main game loop
 running = True
+clock = pygame.time.Clock()
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -130,7 +131,7 @@ while running:
     pygame.display.flip()
 
     # Limit the frame rate
-    pygame.time.Clock().tick(60)
+    clock.tick(60)
 
 pygame.quit()
 sys.exit()
