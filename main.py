@@ -28,16 +28,29 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
 
     def update(self):
-        # Move the sprite with arrow keys
         keys = pygame.key.get_pressed()
+        move_x = 0
+        move_y = 0
+
         if keys[pygame.K_LEFT]:
-            self.rect.x -= 5
+            move_x = - 5
         if keys[pygame.K_RIGHT]:
-            self.rect.x += 5
+            move_x = 5
         if keys[pygame.K_UP]:
-            self.rect.y -= 5
+            move_y = - 5
         if keys[pygame.K_DOWN]:
-            self.rect.y += 5
+            move_y = 5
+
+        # Move the player rect
+        self.rect.x += move_x
+        if pygame.sprite.spritecollide(self, blocks_list, False):
+            # Undo movement if collision occurs
+            self.rect.x -= move_x
+
+        self.rect.y += move_y
+        if pygame.sprite.spritecollide(self, blocks_list, False):
+            # Undo movement if collision occurs
+            self.rect.y -= move_y
 
 next_id = 1
 class Block1(pygame.sprite.Sprite):
@@ -56,12 +69,12 @@ class Block1(pygame.sprite.Sprite):
 
 # Create a sprite group and add the player
 all_sprites = pygame.sprite.Group()
-player = Player()
 
 blocks_list = [
     Block1(100, 100),
     Block1(100, 500),
 ]
+player = Player()
 all_sprites.add(player)
 for block in blocks_list:
     all_sprites.add(block)
