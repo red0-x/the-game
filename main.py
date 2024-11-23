@@ -12,7 +12,8 @@ SCREEN_HEIGHT = 600
 # Create the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Pygame Sprite Example")
-
+idle4 = pygame.image.load("images/player/idle/idle-04.png").convert()
+idle4_ = pygame.transform.flip(idle4, True, False)
 # Define a color
 WHITE = (255, 255, 255)
 
@@ -22,7 +23,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         # Load an image or create a surface
-        self.image = pygame.image.load("images/idle-04.png").convert()
+        self.image = pygame.image.load("images/player/idle/idle-04.png").convert()
 
         # Set a rect for positioning
         self.rect = self.image.get_rect()
@@ -33,6 +34,11 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         keys = pygame.key.get_pressed()
         move_x = 0
+        if self.x_vel > 0:
+            self.image = idle4
+        elif self.x_vel < 0:
+            self.image = idle4_
+
         
         self.y_vel += 2
         if abs(self.x_vel) > 1.5:
