@@ -1,5 +1,6 @@
 import pygame
 import sys
+import json
 
 # Initialize Pygame
 pygame.init()
@@ -63,10 +64,9 @@ class Player(pygame.sprite.Sprite):
 
 next_id = 1
 class Block1(pygame.sprite.Sprite):
+    image = pygame.image.load("images/tile1.png").convert()
     def __init__(self, x, y):
         super().__init__()
-        # Load an image or create a surface
-        self.image = pygame.image.load("images/tile1.png").convert()
 
         # Set a rect for positioning
         self.rect = self.image.get_rect()
@@ -79,11 +79,24 @@ class Block1(pygame.sprite.Sprite):
 # Create a sprite group and add the player
 all_sprites = pygame.sprite.Group()
 
-blocks_list = [
-    Block1(100, 100),
-    Block1(100, 500),
-    Block1(400, 500),
+# blocks_list = [
+#     Block1(100, 100),
+#     Block1(100, 500),
+#     Block1(400, 500),
+# ]
+
+with open("map.json") as file:
+    maps = json.load(file)
+
+blocks_list = []
+block_types = [
+    Block1,
 ]
+map = maps["maps"]["map1"]
+for r, row in enumerate(map):
+    for c, block in enumerate(row):
+        if block != 0:
+            blocks_list.append(block_types[block - 1](c * 32 + 16, r * 32 + 16))
 player = Player()
 all_sprites.add(player)
 for block in blocks_list:
