@@ -26,31 +26,40 @@ class Player(pygame.sprite.Sprite):
         # Set a rect for positioning
         self.rect = self.image.get_rect()
         self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+        self.y_vel = 0
 
     def update(self):
         keys = pygame.key.get_pressed()
         move_x = 0
-        move_y = 0
-
-        if keys[pygame.K_LEFT]:
+        
+        self.y_vel += 2
+        
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             move_x = - 5
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             move_x = 5
-        if keys[pygame.K_UP]:
-            move_y = - 5
-        if keys[pygame.K_DOWN]:
-            move_y = 5
+        # if keys[pygame.K_UP] or keys[pygame.K_W]:
+        #     move_y = - 5
+        # if keys[pygame.K_DOWN] or keys[pygame.K_S]:
+        #     move_y = 5
 
         # Move the player rect
         self.rect.x += move_x
         if pygame.sprite.spritecollide(self, blocks_list, False):
             # Undo movement if collision occurs
             self.rect.x -= move_x
-
-        self.rect.y += move_y
+        
+        self.on_ground = False
+        self.rect.y += self.y_vel
         if pygame.sprite.spritecollide(self, blocks_list, False):
             # Undo movement if collision occurs
-            self.rect.y -= move_y
+            self.rect.y -= self.y_vel
+            if self.y_vel > 0:
+                self.y_vel = 0
+                self.on_ground = True
+            
+        if (keys[pygame.K_UP] or keys[pygame.K_w]) and self.on_ground:
+            self.y_vel = -20
 
 next_id = 1
 class Block1(pygame.sprite.Sprite):
@@ -73,6 +82,7 @@ all_sprites = pygame.sprite.Group()
 blocks_list = [
     Block1(100, 100),
     Block1(100, 500),
+    Block1(400, 500),
 ]
 player = Player()
 all_sprites.add(player)
