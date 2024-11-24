@@ -1,22 +1,16 @@
 import pygame, pygame.draw
+import asyncio
 import json
 from math import copysign
 from random import randint, choice
-from os import environ
 
 # Initialize Pygame
 pygame.init()
 pygame.mixer.init()
 
-if environ.get("PYGBAG"):
-    pyg_tune = 1
-else:
-    pyg_tune = 0
 # Screen dimensions
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 640
-gross_elevation = 1000
-free_falling = False
 pygame.mixer.music.load("audio/background.ogg")
 jump_sound = pygame.mixer.Sound("audio/jump.ogg")
 woosh_sound = pygame.mixer.Sound("audio/woosh.ogg")
@@ -35,7 +29,6 @@ title_image = pygame.transform.scale_by(pygame.image.load("images/title.png"), 6
 cred_rect.center = (400, 1000)
 rect1 = idle4.get_rect()
 rect2 = idle4_.get_rect()
-title_screen = True
 title_rect = title_image.get_rect()
 title_rect.center = (400, 320)
 # Define a color
@@ -304,75 +297,83 @@ def change_level(level_num):
         for c, block in enumerate(row):
             if block != 0:
                 block_types[block - 1](c, r)
-change_level(level_num)
-current_clouds = []
-# Main game loop
-running = True
-clock = pygame.time.Clock()
-dt = 0
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    keys = pygame.key.get_pressed()
-    mouse = pygame.mouse.get_pressed()
-    if not title_screen:
-        all_sprites.update()
+async def main():
+    global level_num, dt
+    gross_elevation = 1000
+    free_falling = False
+    title_screen = True
+    change_level(level_num)
+    current_clouds = []
+    # Main game loop
+    running = True
+    clock = pygame.time.Clock()
+    dt = 0
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        keys = pygame.key.get_pressed()
+        mouse = pygame.mouse.get_pressed()
+        if not title_screen:
+            all_sprites.update()
 
-    if player.hitbox.y > 900:
-        level_num += 1
-        change_level(level_num)
-    elif player.hitbox.y < -100 and level_num > 0:
-        level_num -= 1
-        change_level(level_num)
+        if player.hitbox.y > 900:
+            level_num += 1
+            change_level(level_num)
+        elif player.hitbox.y < -100 and level_num > 0:
+            level_num -= 1
+            change_level(level_num)
 
-    # Draw everything
-    if free_falling:
-        gross_elevation += 1
-        cred_rect.y -= 2
-        player.y_vel = 0
-        player.hitbox.y -= 2.5
-        print(gross_elevation)
-        if len(current_clouds) < 1:
-            for i in range(5):
-                current_clouds.append(Cloud(randint(100, 560), randint(900, 3000)))
-        for i in range(len(current_clouds)):
-            if current_clouds[i].rect.y < -500:
-                current_clouds[i].rect.y = randint(800, 1000)
-                current_clouds[i].rect.x = randint(100, 560)
-            current_clouds[i].rect.y -= 4
-
-    else:
-        gross_elevation = 1400 + 20 * level_num + player.hitbox.y / 32
-    if level_num == len(levels) - 1:
-        free_falling = True
-    # -----SCREEN DRAWING-----
-    screen.fill(WHITE)  # Clear the screen
-    screen.blit(bg1, (0, 0))
-    screen.blit(bg2, (0, (1000 - gross_elevation) * 0.05))
-    screen.blit(bg3, (0, (1000 - gross_elevation) * 0.1))
-    if not title_screen:
-        for i in range(len(current_clouds)):
-            screen.blit(current_clouds[i].image, current_clouds[i].rect)
-            print(f"rendering cloud at {current_clouds[i].rect.x}, {current_clouds[i].rect.y}")
-        # draw player in front
+        # Draw everything
         if free_falling:
-            screen.blit(credits_image, cred_rect)
-        tiles.draw(screen)
-        screen.blit(player.image, player.rect)
-    if title_screen:
-        screen.blit(title_image, title_rect)
-        if (keys[pygame.K_RETURN] or keys[pygame.K_SPACE] or mouse[0]):
-            title_screen = False
-    # pygame.draw.rect(screen, "red", player.hitbox, 2)
-    # for obj in tiles:
-    #     pygame.draw.rect(screen, "blue", obj.hitbox, 2)
+            gross_elevation += 1
+            cred_rect.y -= 2
+            player.y_vel = 0
+            player.hitbox.y -= 2.5
+            print(gross_elevation)
+            if len(current_clouds) < 1:
+                for i in range(5):
+                    current_clouds.append(Cloud(randint(100, 560), randint(900, 3000)))
+            for i in range(len(current_clouds)):
+                if current_clouds[i].rect.y < -500:
+                    current_clouds[i].rect.y = randint(800, 1000)
+                    current_clouds[i].rect.x = randint(100, 560)
+                current_clouds[i].rect.y -= 4
 
-    # Flip the display
-    pygame.display.flip()
+        else:
+            gross_elevation = 1400 + 20 * level_num + player.hitbox.y / 32
+        if level_num == len(levels) - 1:
+            free_falling = True
+        # -----SCREEN DRAWING-----
+        screen.fill(WHITE)  # Clear the screen
+        screen.blit(bg1, (0, 0))
+        screen.blit(bg2, (0, (1000 - gross_elevation) * 0.05))
+        screen.blit(bg3, (0, (1000 - gross_elevation) * 0.1))
+        if not title_screen:
+            for i in range(len(current_clouds)):
+                screen.blit(current_clouds[i].image, current_clouds[i].rect)
+                print(f"rendering cloud at {current_clouds[i].rect.x}, {current_clouds[i].rect.y}")
+            # draw player in front
+            if free_falling:
+                screen.blit(credits_image, cred_rect)
+            tiles.draw(screen)
+            screen.blit(player.image, player.rect)
+        if title_screen:
+            screen.blit(title_image, title_rect)
+            if (keys[pygame.K_RETURN] or keys[pygame.K_SPACE] or mouse[0]):
+                title_screen = False
+        # pygame.draw.rect(screen, "red", player.hitbox, 2)
+        # for obj in tiles:
+        #     pygame.draw.rect(screen, "blue", obj.hitbox, 2)
 
-    # Limit the frame rate
+        # Flip the display
+        pygame.display.flip()
 
-    dt = clock.tick(60) / 1000
+        # Limit the frame rate
 
-pygame.quit()
+        await asyncio.sleep(0)
+        dt = clock.tick() / 1000
+
+    pygame.quit()
+
+asyncio.run(main())
