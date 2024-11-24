@@ -175,7 +175,7 @@
                 tile.dataset.x = x;
                 tile.dataset.y = y;
                 tile.dataset.value = 0; // Default empty
-                tile.onmousedown = () => {!isDragging && (tile);};
+                tile.onmousedown = () => {!isDragging && editTile(tile);};
                 tile.onmouseenter = e => {!isDragging && e.buttons & 1 && editTile(tile);};
                 gridContainer.appendChild(tile);
             }
