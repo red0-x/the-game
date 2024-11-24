@@ -24,6 +24,9 @@ idle4_ = pygame.image.load("images/player/idle/sprite_1.png")
 bg1 = pygame.transform.scale_by(pygame.image.load("images/background/01background.png"), 2).convert_alpha()
 bg2 = pygame.transform.scale_by(pygame.image.load("images/background/02background.png"), 2).convert_alpha()
 bg3 = pygame.transform.scale_by(pygame.image.load("images/background/03background.png"), 2).convert_alpha()
+credits_image = pygame.image.load("images/text/credits.png")
+cred_rect = credits_image.get_rect()
+cred_rect.center = (400, 1000)
 rect1 = idle4.get_rect()
 rect2 = idle4_.get_rect()
 
@@ -281,6 +284,7 @@ while running:
     # Draw everything
     if free_falling:
         gross_elevation += 1
+        cred_rect.y -= 2
         player.y_vel = 0
         player.rect.y = 320
         print(gross_elevation)
@@ -306,6 +310,8 @@ while running:
         screen.blit(current_clouds[i].image, current_clouds[i].rect)
         print(f"rendering cloud at {current_clouds[i].rect.x}, {current_clouds[i].rect.y}")
     # draw player in front
+    if free_falling:
+        screen.blit(credits_image, cred_rect)
     tiles.draw(screen)
     screen.blit(player.image, player.rect)
     # pygame.draw.rect(screen, "red", player.rect, 2)
