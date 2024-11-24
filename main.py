@@ -19,17 +19,20 @@ pygame.mixer.music.play(loops=-1)
 # Create the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Why won't you let me leave")
-idle4 = pygame.image.load("images/player/idle/sprite_0.png")
-idle4_ = pygame.image.load("images/player/idle/sprite_1.png")
+idle4 = pygame.image.load("images/player/idle/sprite_0.png").convert_alpha()
+idle4_ = pygame.image.load("images/player/idle/sprite_1.png").convert_alpha()
 bg1 = pygame.transform.scale_by(pygame.image.load("images/background/01background.png"), 2).convert_alpha()
 bg2 = pygame.transform.scale_by(pygame.image.load("images/background/02background.png"), 2).convert_alpha()
 bg3 = pygame.transform.scale_by(pygame.image.load("images/background/03background.png"), 2).convert_alpha()
-credits_image = pygame.image.load("images/text/credits.png")
+credits_image = pygame.image.load("images/text/credits.png").convert_alpha()
 cred_rect = credits_image.get_rect()
+title_image = pygame.transform.scale_by(pygame.image.load("images/title.png"), 7).convert_alpha()
 cred_rect.center = (400, 1000)
 rect1 = idle4.get_rect()
 rect2 = idle4_.get_rect()
-
+title_screen = True
+title_rect = title_image.get_rect()
+title_rect.center = (400, 280)
 # Define a color
 WHITE = (255, 255, 255)
 
@@ -270,7 +273,8 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
+    keys = pygame.key.get_pressed()
+    mouse = pygame.mouse.get_pressed()
     # Update sprites
     all_sprites.update()
 
@@ -286,7 +290,7 @@ while running:
         gross_elevation += 1
         cred_rect.y -= 2
         player.y_vel = 0
-        player.rect.y = 320
+        player.rect.y -= 2.5
         print(gross_elevation)
         if len(current_clouds) < 1:
             for i in range(5):
@@ -306,14 +310,19 @@ while running:
     screen.blit(bg1, (0, 0))
     screen.blit(bg2, (0, (1000 - gross_elevation) * 0.05))
     screen.blit(bg3, (0, (1000 - gross_elevation) * 0.1))
-    for i in range(len(current_clouds)):
-        screen.blit(current_clouds[i].image, current_clouds[i].rect)
-        print(f"rendering cloud at {current_clouds[i].rect.x}, {current_clouds[i].rect.y}")
-    # draw player in front
-    if free_falling:
-        screen.blit(credits_image, cred_rect)
-    tiles.draw(screen)
-    screen.blit(player.image, player.rect)
+    if not title_screen:
+        for i in range(len(current_clouds)):
+            screen.blit(current_clouds[i].image, current_clouds[i].rect)
+            print(f"rendering cloud at {current_clouds[i].rect.x}, {current_clouds[i].rect.y}")
+        # draw player in front
+        if free_falling:
+            screen.blit(credits_image, cred_rect)
+        tiles.draw(screen)
+        screen.blit(player.image, player.rect)
+    if title_screen:
+        screen.blit(title_image, title_rect)
+        if (keys[pygame.K_RETURN] or keys[pygame.K_SPACE] or mouse[0]):
+            title_screen = False
     # pygame.draw.rect(screen, "red", player.rect, 2)
     # for obj in trampolines:
     #     pygame.draw.rect(screen, "blue", obj.rect, 2)
