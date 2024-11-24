@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level Editor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #grid {
+            display: grid;
+            position: relative;
+            grid-template-columns: repeat(25, 32px);
+            /* gap: 1px; */
+            border: 2px solid black;
+            margin: 20px;
+            background-color: #ddd;
+            user-select: none;
+        }
+        .tile {
+            width: 32px;
+            height: 32px;
+            /* border: 1px solid #ccc; */
+            outline: 1px solid rgba(80, 80, 80, 0.5);
+            background-color: white;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .tile img {
+            max-width: 100%;
+            max-height: 100%;
+            image-rendering: pixelated;
+        }
+        #controls {
+            margin-bottom: 10px;
+        }
+        select, input, button {
+            margin: 5px;
+        }
+        #spawn {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background-color: rgba(255, 255, 0, .5);
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%)
+        }
+        #spawn-x, #spawn-y {
+            width: 10ch;
+        }
+    </style>
+</head>
+<body>
+    <h1>Level Editor</h1>
+    <div id="controls">
+        <div>
+            <label for="tileType">Block: </label><select id="tileType">
+                <option value="0">Air</option>
+                <option value="1">Tile 1</option>
+                <option value="2">Trampoline</option>
+                <option value="3">Potion</option>
+                <option value="4">Portal</option>
+                <option value="5">Text</option>
+            </select><!--input type="text" id="tileData" placeholder="data" /-->
+        </div>
+        <div>
+            Spawn:
+            <input type="number" id="spawn-x"><input type="number" id="spawn-y">
+        </div>
+        <div>
+            <label for="levelSelector">Level: </label><select id="levelSelector" onchange="changeLevel()"></select><button onclick="addLevel()">Add Level</button><button onclick="removeLevel()">Remove Level</button>
+        </div>
+        <div>
+            <label for="importFile" accept="application/json,.json">Import: </label><input type="file" id="importFile" oninput="importMap()"/><button onclick="saveMap()">Save to Clipboard</button><button onclick="clearMap()">Clear Map</button>
+        </div>
+    </div>
+    <div class="grid-container" id="grid">
+        <div id="spawn"></div>
+    </div>
+
+    <script>
+        const spawnElem = document.getElementById('spawn');
+        const gridContainer = document.getElementById("grid");
+        const spawnX = document.getElementById("spawn-x");
+        const spawnY = document.getElementById("spawn-y");
+        spawnX.addEventListener("input", () => setSpawnX(spawnX.value));
+        spawnY.addEventListener("input", () => setSpawnY(spawnY.value));
+
+        let offsetX, offsetY;
+        let isDragging = false;
+
+        function setSpawn(x, y) {
+            setSpawnX(x);
+            setSpawnY(y);
+        }
+        
+        function setSpawnX(x) {
+            spawnElem.style.left = `${x}px`;
+            levels[currentLevel].spawn[0] = x;
+            if (spawnX.value !== x) {
+                spawnX.value = x;
+            }
+        }
+
+        function setSpawnY(y) {
+            spawnElem.style.top = `${y}px`;
+            levels[currentLevel].spawn[1] = y;
+            if (spawnY.value !== y) {
+                spawnY.value = y;
+            }
+        }
+
+        spawnElem.addEventListener('mousedown', (event) => {
+            isDragging = true;
+        });
+
+        document.addEventListener('mousemove', (event) => {
+            if (!isDragging) return;
+            let x = event.pageX - gridContainer.offsetLeft;
+            let y = event.pageY - gridContainer.offsetTop;
+
+            // Constrain x and y to container bounds
+            x = Math.max(0, Math.min(x, 799));
+            y = Math.max(0, Math.min(y, 639));
+
+            x = Math.round(x / 16) * 16;
+            y = Math.round(y / 16) * 16;
+
+            setSpawn(x, y);
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+
+
+        const gridWidth = 25;
+        const gridHeight = 20;
+        const imagePaths = {
+            0: "",
+            1: "tile1.png",
+            2: "trampoline.webp",
+            3: "potion.png",
+            4: "portal.png"
+        };
+
+        let levels = []; // Array of levels, each containing a grid and spawn
+        let currentLevel = 0;
+
+        // Initialize first level
+        function initLevel() {
+            return {
+                map: Array.from({ length: gridHeight }, () => Array(gridWidth).fill(0)),
+                spawn: [0, 0]
+            };
+            setSpawn(0, 0);
+        }
+
+        // Add first level
+        levels.push(initLevel());
+
+        // Create the grid
+        for (let y = 0; y < gridHeight; y++) {
+            for (let x = 0; x < gridWidth; x++) {
+                const tile = document.createElement("div");
+                tile.className = "tile";
+                tile.dataset.x = x;
+                tile.dataset.y = y;
+                tile.dataset.value = 0; // Default empty
+                tile.onmousedown = () => {!isDragging && (tile);};
+                tile.onmouseenter = e => {!isDragging && e.buttons & 1 && editTile(tile);};
+                gridContainer.appendChild(tile);
+            }
+        }
+
+        
+
+        // Populate level selector
+        function updateLevelSelector() {
+            const selector = document.getElementById("levelSelector");
+            selector.innerHTML = "";
+            levels.forEach((_, index) => {
+                const option = document.createElement("option");
+                option.value = index;
+                option.textContent = `Level ${index + 1}`;
+                selector.appendChild(option);
+            });
+            selector.value = currentLevel;
+        }
+
+        // Load the current level into the grid
+        function loadLevel() {
+            const level = levels[currentLevel];
+            setSpawn(...level.spawn)
+            level.map.forEach((row, y) => row.forEach((value, x) => {
+                const tile = document.querySelector(`.tile[data-x='${x}'][data-y='${y}']`);
+                updateTileDisplay(tile, value);
+            }));
+        }
+
+
+
+        // Edit a tile
+        function editTile(tile) {
+            const x = tile.dataset.x;
+            const y = tile.dataset.y;
+            const selectedValue = parseInt(document.getElementById("tileType").value);
+            // const tileData = document.getElementById("tileData").value;
+
+            const level = levels[currentLevel];
+            level.map[y][x] = /* selectedValue === 5 ? [5, tileData] : */ selectedValue;
+
+            // Update the tile display
+            updateTileDisplay(tile, selectedValue /* , tileData */);
+        }
+
+        function updateTileDisplay(tile, value /*, data */) {
+            // Clear existing content
+            while (tile.firstChild) {
+                tile.firstChild.remove();
+            }
+            if (value === 0) return; // No image
+
+            const img = document.createElement("img");
+            // if (value === 5) {
+            //     img.src = data; // Use data as the image path for custom tiles
+            // } else {
+                img.src = imagePaths[value];
+            // }
+            img.ondragstart = e => e.preventDefault();
+            tile.appendChild(img);
+        }
+
+        async function saveMap() {
+            await navigator.clipboard.writeText(JSON.stringify(levels))
+        }
+
+        // Clear the current level
+        function clearMap() {
+            const level = levels[currentLevel];
+            level.map = Array.from({ length: gridHeight }, () => Array(gridWidth).fill(0));
+            setSpawn(0, 0);
+            loadLevel();
+        }
+
+        // Add a new level
+        function addLevel() {
+            levels.push(initLevel());
+            currentLevel = levels.length - 1;
+            updateLevelSelector();
+            loadLevel();
+        }
+
+        // Remove the current level
+        function removeLevel() {
+            if (levels.length > 1) {
+                levels.splice(currentLevel, 1);
+                currentLevel = Math.max(0, currentLevel - 1);
+                updateLevelSelector();
+                loadLevel();
+            } else {
+                alert("You must have at least one level.");
+            }
+        }
+
+        // Change the current level
+        function changeLevel() {
+            currentLevel = parseInt(document.getElementById("levelSelector").value);
+            loadLevel();
+        }
+
+        // Import levels
+        function importMap() {
+            const fileInput = document.getElementById("importFile");
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    levels = data.map(level => ({
+                        map: level.map,
+                        spawn: level.spawn
+                    }));
+                    currentLevel = 0;
+                    updateLevelSelector();
+                    loadLevel();
+                } catch (error) {
+                    alert("Invalid map file");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Initialize
+        updateLevelSelector();
+        loadLevel();
+    </script>
+</body>
+</html>
