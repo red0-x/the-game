@@ -5,12 +5,17 @@ from random import randint
 
 # Initialize Pygame
 pygame.init()
+pygame.mixer.init()
 
 # Screen dimensions
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 640
 gross_elevation = 1000
 free_falling = False
+pygame.mixer.music.load("audio/background.ogg")
+jump_sound = pygame.mixer.Sound("audio/jump.ogg")
+woosh_sound = pygame.mixer.Sound("audio/woosh.ogg")
+pygame.mixer.music.play(loops=-1)
 # Create the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Why won't you let me leave")
@@ -82,6 +87,7 @@ class Player(pygame.sprite.Sprite):
         
         if pygame.sprite.spritecollide(self, trampolines, False):
             self.y_vel = -70
+            jump_sound.play()
 
         if pygame.sprite.spritecollide(self, potions, False):
             reset_player()
@@ -93,6 +99,7 @@ class Player(pygame.sprite.Sprite):
                 dest = next(p for p in portals if portal != p)
                 player.rect.x = dest.rect.x
                 player.rect.y = dest.rect.y
+                woosh_sound.play()
                 # print(f"{pygame.sprite.spritecollide(self, blocks, False)=}")
                 # print(f"{player.rect=}")
                 # print(f"{dest.rect=}")
@@ -104,6 +111,7 @@ class Player(pygame.sprite.Sprite):
 
         if (keys[pygame.K_UP] or keys[pygame.K_w]) and self.on_ground:
             self.y_vel = -30
+            jump_sound.play()
 
 # Create a sprite group and add the player
 all_sprites = pygame.sprite.Group()
