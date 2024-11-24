@@ -63,7 +63,7 @@ class Player(pygame.sprite.Sprite):
 
         # Move the player rect
         self.rect.x += self.x_vel
-        if pygame.sprite.spritecollide(self, blocks_list, False):
+        if pygame.sprite.spritecollide(self, blocks, False):
             # Undo movement if collision occurs
             self.rect.x -= self.x_vel
             self.x_vel = 0
@@ -71,21 +71,34 @@ class Player(pygame.sprite.Sprite):
         
         self.on_ground = False
         self.rect.y += self.y_vel
-        if pygame.sprite.spritecollide(self, blocks_list, False):
+        if pygame.sprite.spritecollide(self, blocks, False):
             # Undo movement if collision occurs
             self.rect.y -= self.y_vel
             if self.y_vel > 0:
                 self.on_ground = True
             self.y_vel = 0
-            
+        
+        if pygame.sprite.spritecollide(self, trampolines, False):
+            self.y_vel = -50
+
+        if pygame.sprite.spritecollide(self, potions, False):
+            reset_player()
+
         if (keys[pygame.K_UP] or keys[pygame.K_w]) and self.on_ground:
             self.y_vel = -30
 
+# Create a sprite group and add the player
+all_sprites = pygame.sprite.Group()
+
 next_id = 1
-class Block1(pygame.sprite.Sprite):
-    image = pygame.image.load("images/tile1.png").convert()
+tiles = set()
+class Tile(pygame.sprite.Sprite):
+    image = None
+    sets = (all_sprites, tiles)
     def __init__(self, x, y):
         super().__init__()
+        for set in self.sets:
+            set.add(self)
 
         # Set a rect for positioning
         self.rect = self.image.get_rect()
@@ -94,45 +107,66 @@ class Block1(pygame.sprite.Sprite):
         global next_id
         self.id_num = next_id
         next_id += 1
+    
+    def remove(self):
+        for set in self.sets:
+            set.remove(self)
+
+blocks = set()
+class Block(Tile):
+    image = pygame.image.load("images/tile1.png").convert()
+    sets = (all_sprites, blocks, tiles)
+        
+
+trampolines = set()
+class Trampoline(Tile):
+    image = pygame.image.load("images/trampoline.webp").convert()
+    sets = (all_sprites, trampolines, tiles)
+
+potions = set()
+class Potion(Tile):
+    image = pygame.image.load("images/potion.png").convert()
+    sets = (all_sprites, potions, tiles)
 
 
-# Create a sprite group and add the player
-all_sprites = pygame.sprite.Group()
+
 
 with open("map.json") as file:
-    maps = json.load(file)
+    levels = json.load(file)
 player_start = [(320, 0), (250, 0), (600, 300)]
 level = 0
-blocks_list = []
+
 block_types = [
-    Block1,
+    Block,
+    Trampoline,
+    Potion,
 ]
 
-# map = maps[0]
-# for r, row in enumerate(map):
-#     for c, block in enumerate(row):
-#         if block != 0:
-#             blocks_list.append(block_types[block - 1](c * 32 + 16, r * 32 + 16))
 
 player = Player()
 all_sprites.add(player)
 
-def change_level(level_num):
-    blocks_list.clear()
-    all_sprites.empty()
+def reset_player():
     player.y_vel = 0
     player.x_vel = 0
-    all_sprites.add(player)
-    player.rect.x = player_start[level][0]
-    player.rect.y = player_start[level][1]
-    map = maps[level_num]
+    player.rect.x, player.rect.y = level["spawn"]
+
+level = None
+level_num = 0
+def change_level(level_num):
+    global level
+    # need a list because we will be deleting them while iterating
+    # and otherwise the set will throw an error
+    for tile in list(tiles):
+        tile.remove()
+    level = levels[level_num]
+    reset_player()
+    map = level["map"]
     for r, row in enumerate(map):
         for c, block in enumerate(row):
             if block != 0:
-                blocks_list.append(block_types[block - 1](c * 32 + 16, r * 32 + 16))
-    for block in blocks_list:
-        all_sprites.add(block)
-change_level(0)
+                block_types[block - 1](c * 32 + 16, r * 32 + 16)
+change_level(level_num)
 
 # Main game loop
 running = True
@@ -146,8 +180,8 @@ while running:
     all_sprites.update()
 
     if player.rect.y > 900:
-        level += 1
-        change_level(level)
+        level_num += 1
+        change_level(level_num)
 
     # Draw everything
     if free_falling:
@@ -156,8 +190,8 @@ while running:
         player.rect.y = 320
         print(gross_elevation)
     else:
-        gross_elevation = 1000 + 20 * level + player.rect.y / 32
-    if level == 2:
+        gross_elevation = 1000 + 20 * level_num + player.rect.y / 32
+    if level_num == len(levels) - 1:
         free_falling = True
     screen.fill(WHITE)  # Clear the screen
     screen.blit(bg1, (0, 0))
