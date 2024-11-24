@@ -102,6 +102,7 @@
         }
         
         function setSpawnX(x) {
+            x = Number(x);
             spawnElem.style.left = `${x}px`;
             levels[currentLevel].spawn[0] = x;
             if (spawnX.value !== x) {
@@ -110,6 +111,7 @@
         }
 
         function setSpawnY(y) {
+            y = Number(y);
             spawnElem.style.top = `${y}px`;
             levels[currentLevel].spawn[1] = y;
             if (spawnY.value !== y) {
