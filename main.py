@@ -65,11 +65,11 @@ class Player(pygame.sprite.Sprite):
         if pixels == 0:
             return True
         # prevent phasing through walls
-        if abs(pixels) > 30:
-            for _ in range(pixels // 30):
-                if not self.move_y(copysign(30, pixels)):
+        if abs(pixels) > self.hitbox.height:
+            for _ in range(abs(pixels) // self.hitbox.height):
+                if not self.move_y(copysign(self.hitbox.height, pixels)):
                     return False
-            return self.move_y(copysign(abs(pixels % 30), pixels))
+            return self.move_y(copysign(abs(pixels % self.hitbox.height), pixels))
         # moving down
         if pixels > 0:
             old_y = self.hitbox.bottom
@@ -97,11 +97,11 @@ class Player(pygame.sprite.Sprite):
         if pixels == 0:
             return True
         # prevent phasing through walls
-        if abs(pixels) > 30:
-            for _ in range(pixels // 30):
-                if not self.move_x(copysign(30, pixels)):
+        if abs(pixels) > self.hitbox.width:
+            for _ in range(pixels // self.hitbox.width):
+                if not self.move_x(copysign(self.hitbox.width, pixels)):
                     return False
-            return self.move_x(copysign(abs(pixels % 30), pixels))
+            return self.move_x(copysign(abs(pixels % self.hitbox.width), pixels))
         # moving down
         if pixels > 0:
             old_x = self.hitbox.right
@@ -238,7 +238,7 @@ class Portal(Tile):
 
 texts = set()
 class Text(pygame.sprite.Sprite):
-    groups = (all_sprites, texts, tiles)
+    groups = (all_sprites, texts)
 
     def __init__(self, x, y):
         super().__init__()
@@ -309,8 +309,8 @@ while running:
             running = False
     keys = pygame.key.get_pressed()
     mouse = pygame.mouse.get_pressed()
-    # Update sprites
-    all_sprites.update()
+    if not title_screen:
+        all_sprites.update()
 
     if player.hitbox.y > 900:
         level_num += 1
@@ -358,7 +358,7 @@ while running:
         if (keys[pygame.K_RETURN] or keys[pygame.K_SPACE] or mouse[0]):
             title_screen = False
     # pygame.draw.rect(screen, "red", player.hitbox, 2)
-    # for obj in blocks:
+    # for obj in tiles:
     #     pygame.draw.rect(screen, "blue", obj.hitbox, 2)
 
     # Flip the display
