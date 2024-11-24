@@ -1,6 +1,6 @@
-import pygame
-import sys
+import pygame, pygame.draw
 import json
+from math import copysign
 from random import randint
 
 # Initialize Pygame
@@ -45,6 +45,38 @@ class Player(pygame.sprite.Sprite):
         self.x_vel = 0
         self.in_portal = False
 
+    def move_y(self, pixels):
+        if pixels == 0:
+            return True
+        # prevent phasing through walls
+        if abs(pixels) > 30:
+            for _ in range(pixels // 30):
+                if not self.move_y(30):
+                    return False
+            return self.move_y(copysign(pixels % 30, pixels))
+        # moving down
+        if pixels > 0:
+            old_y = self.rect.bottom
+        else:
+            old_y = self.rect.top
+        self.rect.y += self.y_vel
+        collided_blocks = pygame.sprite.spritecollide(self, blocks, False)
+        if not collided_blocks:
+            return True
+
+        # Undo movement if collision occurs
+
+        if pixels > 0:
+            min_y = min(block.rect.top for block in collided_blocks)
+            self.rect.bottom = max(min_y, old_y)
+            # print(f"down {min_y=}, {old_y=}")
+        else:
+            max_y = max(block.rect.bottom for block in collided_blocks)
+            # print(f"up {max_y=}, {old_y=}")
+            self.rect.top = min(max_y, old_y)
+
+        return False
+
     def update(self):
         keys = pygame.key.get_pressed()
         if self.x_vel > 0:
@@ -75,12 +107,9 @@ class Player(pygame.sprite.Sprite):
             self.rect.x -= self.x_vel
             self.x_vel = 0
 
-        
+        # returns false on collision
         self.on_ground = False
-        self.rect.y += self.y_vel
-        if pygame.sprite.spritecollide(self, blocks, False):
-            # Undo movement if collision occurs
-            self.rect.y -= self.y_vel
+        if not self.move_y(self.y_vel):
             if self.y_vel > 0:
                 self.on_ground = True
             self.y_vel = 0
@@ -121,6 +150,7 @@ tiles = pygame.sprite.Group()
 class Tile(pygame.sprite.Sprite):
     image = None
     groups = (all_sprites, tiles)
+    collison = None
     def __init__(self, x, y):
         super().__init__()
         for set in self.groups:
@@ -139,7 +169,6 @@ class Tile(pygame.sprite.Sprite):
             set.remove(self)
 
 level = None
-global level_num
 level_num = 0
 
 
@@ -279,6 +308,9 @@ while running:
     # draw player in front
     tiles.draw(screen)
     screen.blit(player.image, player.rect)
+    pygame.draw.rect(screen, "red", player.rect, 2)
+    for obj in trampolines:
+        pygame.draw.rect(screen, "blue", obj.rect, 2)
 
     # Flip the display
     pygame.display.flip()
@@ -287,4 +319,3 @@ while running:
     clock.tick(30)
 
 pygame.quit()
-sys.exit()
