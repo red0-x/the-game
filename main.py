@@ -103,7 +103,7 @@ class Player(pygame.sprite.Sprite):
             return True
         # prevent phasing through walls
         if abs(pixels) > self.hitbox.width:
-            for _ in range(pixels // self.hitbox.width):
+            for _ in range(int(pixels) // self.hitbox.width):
                 if not self.move_x(copysign(self.hitbox.width, pixels)):
                     return False
             return self.move_x(copysign(abs(pixels % self.hitbox.width), pixels))
