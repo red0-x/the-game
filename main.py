@@ -321,7 +321,7 @@ async def main():
         if not title_screen:
             all_sprites.update()
 
-        if player.hitbox.y > 900:
+        if player.hitbox.y > 900 and not free_falling:
             level_num += 1
             change_level(level_num)
         elif player.hitbox.y < -100 and level_num > 0:
@@ -333,7 +333,7 @@ async def main():
             gross_elevation += 1
             cred_rect.y -= 0.05
             player.y_vel = 0
-            player.hitbox.y += 2.5
+            player.hitbox.y += 50 * dt
             print(gross_elevation)
             if len(current_clouds) < 1:
                 for i in range(5):
