@@ -137,17 +137,17 @@ class Block(Tile):
 
 trampolines = set()
 class Trampoline(Tile):
-    image = pygame.image.load("images/trampoline.webp").convert()
+    image = pygame.image.load("images/trampoline.webp").convert_alpha()
     groups = (all_sprites, trampolines, tiles)
 
 potions = set()
 class Potion(Tile):
-    image = pygame.image.load("images/potion.png").convert()
+    image = pygame.image.load("images/potion.png").convert_alpha()
     groups = (all_sprites, potions, tiles)
 
 portals = set()
 class Portal(Tile):
-    image = pygame.image.load("images/portal.png").convert()
+    image = pygame.image.load("images/portal.png").convert_alpha()
     groups = (all_sprites, portals, tiles)
 
 
