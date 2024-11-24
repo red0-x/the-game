@@ -65,7 +65,7 @@ class Player(pygame.sprite.Sprite):
             old_y = self.rect.bottom
         else:
             old_y = self.rect.top
-        self.rect.y += self.y_vel
+        self.rect.y += pixels
         collided_blocks = pygame.sprite.spritecollide(self, blocks, False)
         if not collided_blocks:
             return True
@@ -80,6 +80,38 @@ class Player(pygame.sprite.Sprite):
             max_y = max(block.rect.bottom for block in collided_blocks)
             # print(f"up {max_y=}, {old_y=}")
             self.rect.top = min(max_y, old_y)
+
+        return False
+
+    def move_x(self, pixels):
+        if pixels == 0:
+            return True
+        # prevent phasing through walls
+        if abs(pixels) > 30:
+            for _ in range(pixels // 30):
+                if not self.move_x(copysign(30, pixels)):
+                    return False
+            return self.move_x(copysign(abs(pixels % 30), pixels))
+        # moving down
+        if pixels > 0:
+            old_x = self.rect.right
+        else:
+            old_x = self.rect.left
+        self.rect.x += pixels
+        collided_blocks = pygame.sprite.spritecollide(self, blocks, False)
+        if not collided_blocks:
+            return True
+
+        # Undo movement if collision occurs
+
+        if pixels > 0:
+            min_x = min(block.rect.left for block in collided_blocks)
+            self.rect.right = max(min_x, old_x)
+            # print(f"down {min_y=}, {old_y=}")
+        else:
+            max_x = max(block.rect.right for block in collided_blocks)
+            # print(f"up {max_y=}, {old_y=}")
+            self.rect.left = min(max_x, old_x)
 
         return False
 
@@ -107,10 +139,7 @@ class Player(pygame.sprite.Sprite):
             self.x_vel += 1.25
 
         # Move the player rect
-        self.rect.x += self.x_vel
-        if pygame.sprite.spritecollide(self, blocks, False):
-            # Undo movement if collision occurs
-            self.rect.x -= self.x_vel
+        if not self.move_x(self.x_vel):
             self.x_vel = 0
 
         # returns false on collision
