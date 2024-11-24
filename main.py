@@ -1,6 +1,7 @@
 import pygame
 import sys
 import json
+from random import randint
 
 # Initialize Pygame
 pygame.init()
@@ -177,6 +178,13 @@ class Text(pygame.sprite.Sprite):
         for set in self.groups:
             set.remove(self)
 
+class Cloud(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.transform.scale_by(pygame.image.load(f"images/clouds/cloud{randint(1, 2)}.png"), randint(1, 50)/100).convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.center = x, y
+
 with open("map.json") as file:
     levels = json.load(file)
 # moved to map.json
@@ -214,7 +222,7 @@ def change_level(level_num):
             if block != 0:
                 block_types[block - 1](c * 32 + 16, r * 32 + 16)
 change_level(level_num)
-
+current_clouds = []
 # Main game loop
 running = True
 clock = pygame.time.Clock()
@@ -235,10 +243,19 @@ while running:
 
     # Draw everything
     if free_falling:
-        gross_elevation += 10
+        gross_elevation += 1
         player.y_vel = 0
         player.rect.y = 320
         print(gross_elevation)
+        if len(current_clouds) < 1:
+            for i in range(5):
+                current_clouds.append(Cloud(randint(100, 560), randint(900, 3000)))
+        for i in range(len(current_clouds)):
+            if current_clouds[i].rect.y < -500:
+                current_clouds[i].rect.y = randint(800, 1000)
+                current_clouds[i].rect.x = randint(100, 560)
+            current_clouds[i].rect.y -= 4
+
     else:
         gross_elevation = 1000 + 20 * level_num + player.rect.y / 32
     if level_num == len(levels) - 1:
@@ -248,7 +265,9 @@ while running:
     screen.blit(bg1, (0, 0))
     screen.blit(bg2, (0, (1000 - gross_elevation) * 0.05))
     screen.blit(bg3, (0, (1000 - gross_elevation) * 0.1))
-
+    for i in range(len(current_clouds)):
+        screen.blit(current_clouds[i].image, current_clouds[i].rect)
+        print(f"rendering cloud at {current_clouds[i].rect.x}, {current_clouds[i].rect.y}")
     # draw player in front
     tiles.draw(screen)
     screen.blit(player.image, player.rect)
