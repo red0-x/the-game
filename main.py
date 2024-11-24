@@ -220,11 +220,17 @@ trampolines = set()
 class Trampoline(Tile):
     image = pygame.image.load("images/trampoline.webp").convert_alpha()
     groups = (all_sprites, trampolines, tiles)
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.hitbox.inflate_ip(-8, -8)
 
 potions = set()
 class Potion(Tile):
     image = pygame.image.load("images/potion.png").convert_alpha()
     groups = (all_sprites, potions, tiles)
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.hitbox.inflate_ip(-8, -8)
 
 portals = set()
 class Portal(Tile):
