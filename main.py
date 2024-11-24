@@ -131,14 +131,14 @@ class Player(pygame.sprite.Sprite):
             self.image = idle4_
 
         
-        self.y_vel += 1500 * dt
-        if abs(self.x_vel) > 45:
+        self.y_vel += 1800 * dt
+        if abs(self.x_vel) > 1.5:
             self.x_vel += self.x_vel * -5 * dt
-        elif abs(self.x_vel) < 15.3:
+        elif abs(self.x_vel) < 1:
             self.x_vel = 0
-        elif 15.3 < self.x_vel < 45:
+        elif 0.51 < self.x_vel < 1:
             self.x_vel -= 900 * dt
-        elif -45 < self.x_vel < 15.3:
+        elif -1 < self.x_vel < 0.51:
             self.x_vel += 900 * dt
 
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
