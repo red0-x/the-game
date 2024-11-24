@@ -2,11 +2,16 @@ import pygame, pygame.draw
 import json
 from math import copysign
 from random import randint, choice
+from os import environ
 
 # Initialize Pygame
 pygame.init()
 pygame.mixer.init()
 
+if environ.get("PYGBAG"):
+    pyg_tune = 1
+else:
+    pyg_tune = 0
 # Screen dimensions
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 640
@@ -26,13 +31,13 @@ bg2 = pygame.transform.scale_by(pygame.image.load("images/background/02backgroun
 bg3 = pygame.transform.scale_by(pygame.image.load("images/background/03background.png"), 2).convert_alpha()
 credits_image = pygame.image.load("images/text/credits.png").convert_alpha()
 cred_rect = credits_image.get_rect()
-title_image = pygame.transform.scale_by(pygame.image.load("images/title.png"), 7).convert_alpha()
+title_image = pygame.transform.scale_by(pygame.image.load("images/title.png"), 6).convert_alpha()
 cred_rect.center = (400, 1000)
 rect1 = idle4.get_rect()
 rect2 = idle4_.get_rect()
 title_screen = True
 title_rect = title_image.get_rect()
-title_rect.center = (400, 280)
+title_rect.center = (400, 320)
 # Define a color
 WHITE = (255, 255, 255)
 
@@ -66,7 +71,7 @@ class Player(pygame.sprite.Sprite):
             return True
         # prevent phasing through walls
         if abs(pixels) > self.hitbox.height:
-            for _ in range(abs(pixels) // self.hitbox.height):
+            for _ in range(int(abs(pixels) // self.hitbox.height)):
                 if not self.move_y(copysign(self.hitbox.height, pixels)):
                     return False
             return self.move_y(copysign(abs(pixels % self.hitbox.height), pixels))
@@ -133,34 +138,34 @@ class Player(pygame.sprite.Sprite):
             self.image = idle4_
 
         
-        self.y_vel += 3
-        if abs(self.x_vel) > 1.5:
-            self.x_vel += self.x_vel * -0.10
-        elif abs(self.x_vel) < 0.51:
+        self.y_vel += 1500 * dt
+        if abs(self.x_vel) > 45:
+            self.x_vel += self.x_vel * -5 * dt
+        elif abs(self.x_vel) < 15.3:
             self.x_vel = 0
-        elif self.x_vel < 1.5 and self.x_vel > 0.51:
-            self.x_vel -= 0.5
-        elif self.x_vel > -1.5 and self.x_vel < 0.51:
-            self.x_vel += 0.5
+        elif 15.3 < self.x_vel < 45:
+            self.x_vel -= 900 * dt
+        elif -45 < self.x_vel < 15.3:
+            self.x_vel += 900 * dt
 
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            self.x_vel-= 1.25
+            self.x_vel-= 1800 * dt
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            self.x_vel += 1.25
+            self.x_vel += 1800 * dt
 
         # Move the player rect
-        if not self.move_x(self.x_vel):
+        if not self.move_x(self.x_vel * dt):
             self.x_vel = 0
 
         # returns false on collision
         self.on_ground = False
-        if not self.move_y(self.y_vel):
+        if not self.move_y(self.y_vel * dt):
             if self.y_vel > 0:
                 self.on_ground = True
             self.y_vel = 0
         
         if collide(self, trampolines):
-            self.y_vel = -70
+            self.y_vel = -1500
             jump_sound.play()
 
         if collide(self, potions):
@@ -182,7 +187,7 @@ class Player(pygame.sprite.Sprite):
 
 
         if (keys[pygame.K_UP] or keys[pygame.K_w]) and self.on_ground:
-            self.y_vel = -30
+            self.y_vel = -750
             jump_sound.play()
 
 # Create a sprite group and add the player
@@ -280,6 +285,7 @@ block_types = [
 player = Player()
 all_sprites.add(player)
 
+
 def reset_player():
     player.y_vel = 0
     player.x_vel = 0
@@ -303,6 +309,7 @@ current_clouds = []
 # Main game loop
 running = True
 clock = pygame.time.Clock()
+dt = 0
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -365,6 +372,7 @@ while running:
     pygame.display.flip()
 
     # Limit the frame rate
-    clock.tick(30)
+
+    dt = clock.tick(60) / 1000
 
 pygame.quit()
