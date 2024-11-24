@@ -120,7 +120,7 @@ class Tile(pygame.sprite.Sprite):
 
         # Set a rect for positioning
         self.rect = self.image.get_rect()
-        self.rect.inflate_ip(-10, -10)
+        # self.rect.inflate_ip(-10, -10)
         self.rect.center = (x, y)
         global next_id
         self.id_num = next_id
