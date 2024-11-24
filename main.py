@@ -276,7 +276,8 @@ while running:
     keys = pygame.key.get_pressed()
     mouse = pygame.mouse.get_pressed()
     # Update sprites
-    all_sprites.update()
+    if not title_screen:
+        all_sprites.update()
 
     if player.rect.y > 900:
         level_num += 1
@@ -302,14 +303,14 @@ while running:
             current_clouds[i].rect.y -= 4
 
     else:
-        gross_elevation = 1000 + 20 * level_num + player.rect.y / 32
+        gross_elevation = 1400 + 20 * level_num + player.rect.y / 32
     if level_num == len(levels) - 1:
         free_falling = True
     # -----SCREEN DRAWING-----
     screen.fill(WHITE)  # Clear the screen
     screen.blit(bg1, (0, 0))
-    screen.blit(bg2, (0, (1000 - gross_elevation) * 0.05))
-    screen.blit(bg3, (0, (1000 - gross_elevation) * 0.1))
+    screen.blit(bg2, (0, (1400 - gross_elevation) * 0.05))
+    screen.blit(bg3, (0, (1400 - gross_elevation) * 0.1))
     if not title_screen:
         for i in range(len(current_clouds)):
             screen.blit(current_clouds[i].image, current_clouds[i].rect)
