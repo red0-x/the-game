@@ -26,13 +26,13 @@ bg2 = pygame.transform.scale_by(pygame.image.load("images/background/02backgroun
 bg3 = pygame.transform.scale_by(pygame.image.load("images/background/03background.png"), 2).convert_alpha()
 credits_image = pygame.image.load("images/text/credits.png").convert_alpha()
 cred_rect = credits_image.get_rect()
-title_image = pygame.transform.scale_by(pygame.image.load("images/title.png"), 7).convert_alpha()
+title_image = pygame.transform.scale_by(pygame.image.load("images/title.png"), 6).convert_alpha()
 cred_rect.center = (400, 1000)
 rect1 = idle4.get_rect()
 rect2 = idle4_.get_rect()
 title_screen = True
 title_rect = title_image.get_rect()
-title_rect.center = (400, 280)
+title_rect.center = (400, 320)
 # Define a color
 WHITE = (255, 255, 255)
 
@@ -351,7 +351,7 @@ while running:
         screen.blit(player.image, player.rect)
     if title_screen:
         screen.blit(title_image, title_rect)
-        if (keys[pygame.K_RETURN] or keys[pygame.K_SPACE] or mouse[0]):
+        if (keys[pygame.K_RETURN] or keys[pygame.K_SPACE] or mouse[0] or keys[pygame.K_f]):
             title_screen = False
     # pygame.draw.rect(screen, "red", player.rect, 2)
     # for obj in trampolines:
