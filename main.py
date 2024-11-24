@@ -12,7 +12,7 @@ gross_elevation = 1000
 free_falling = False
 # Create the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Pygame Sprite Example")
+pygame.display.set_caption("Why won't you let me leave")
 idle4 = pygame.image.load("images/player/idle/sprite_0.png")
 idle4_ = pygame.image.load("images/player/idle/sprite_1.png")
 bg1 = pygame.transform.scale_by(pygame.image.load("images/background/01background.png"), 2).convert_alpha()
@@ -129,6 +129,11 @@ class Tile(pygame.sprite.Sprite):
         for set in self.groups:
             set.remove(self)
 
+level = None
+global level_num
+level_num = 0
+
+
 blocks = set()
 class Block(Tile):
     image = pygame.image.load("images/tile1.png").convert()
@@ -150,7 +155,27 @@ class Portal(Tile):
     image = pygame.image.load("images/portal.png").convert_alpha()
     groups = (all_sprites, portals, tiles)
 
+texts = set()
+class Text(pygame.sprite.Sprite):
+    groups = (all_sprites, texts, tiles)
 
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.image.load(f"images/text/text_{level_num + 1}.png").convert_alpha()
+        for set in self.groups:
+            set.add(self)
+
+        # Set a rect for positioning
+        self.rect = self.image.get_rect()
+        self.rect.inflate_ip(-10, -10)
+        self.rect.center = (x, y)
+        global next_id
+        self.id_num = next_id
+        next_id += 1
+
+    def remove(self):
+        for set in self.groups:
+            set.remove(self)
 
 with open("map.json") as file:
     levels = json.load(file)
@@ -163,6 +188,7 @@ block_types = [
     Trampoline,
     Potion,
     Portal,
+    Text,
 ]
 
 
@@ -174,8 +200,6 @@ def reset_player():
     player.x_vel = 0
     player.rect.x, player.rect.y = level["spawn"]
 
-level = None
-level_num = 0
 def change_level(level_num):
     global level
     # need a list because we will be deleting them while iterating
@@ -216,6 +240,7 @@ while running:
         gross_elevation = 1000 + 20 * level_num + player.rect.y / 32
     if level_num == len(levels) - 1:
         free_falling = True
+    # -----SCREEN DRAWING-----
     screen.fill(WHITE)  # Clear the screen
     screen.blit(bg1, (0, 0))
     screen.blit(bg2, (0, (1000 - gross_elevation) * 0.05))
