@@ -329,7 +329,7 @@ async def main():
             gross_elevation += 1
             cred_rect.y -= 2
             player.y_vel = 0
-            player.hitbox.y -= 2.5
+            player.hitbox.y += 2.5
             print(gross_elevation)
             if len(current_clouds) < 1:
                 for i in range(5):
