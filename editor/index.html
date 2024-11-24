@@ -75,10 +75,10 @@
             <input type="number" id="spawn-x"><input type="number" id="spawn-y">
         </div>
         <div>
-            <label for="levelSelector">Level: </label><select id="levelSelector" onchange="changeLevel()"></select><button onclick="addLevel()">Add Level</button><button onclick="removeLevel()">Remove Level</button>
+            <label for="levelSelector">Level: </label><select id="levelSelector" onchange="changeLevel()"></select><button onclick="insertLevel()">Insert Level Before</button><button onclick="addLevel()">Add Level</button><button onclick="removeLevel()">Remove Level</button><button onclick="clearMap()">Clear Map</button>
         </div>
         <div>
-            <label for="importFile" accept="application/json,.json">Import: </label><input type="file" id="importFile" oninput="importMap()"/><button onclick="saveMap()">Save to Clipboard</button><button onclick="clearMap()">Clear Map</button>
+            <label for="importFile" accept="application/json,.json">Import: </label><input type="file" id="importFile" oninput="importMap()"/><button onclick="saveMap()">Copy to Clipboard</button><button onclick="pasteMap()">Paste from Clipboard</button>
         </div>
     </div>
     <div class="grid-container" id="grid">
@@ -161,7 +161,6 @@
                 map: Array.from({ length: gridHeight }, () => Array(gridWidth).fill(0)),
                 spawn: [0, 0]
             };
-            setSpawn(0, 0);
         }
 
         // Add first level
@@ -239,6 +238,10 @@
             tile.appendChild(img);
         }
 
+        async function pasteMap() {
+            importJSON(await navigator.clipboard.readText());
+        }
+
         async function saveMap() {
             await navigator.clipboard.writeText(JSON.stringify(levels))
         }
@@ -252,6 +255,14 @@
         }
 
         // Add a new level
+        function insertLevel() {
+            levels.splice(currentLevel, 0, initLevel());
+            currentLevel = levels.length - 1;
+            updateLevelSelector();
+            loadLevel();
+        }
+
+
         function addLevel() {
             levels.push(initLevel());
             currentLevel = levels.length - 1;
@@ -285,20 +296,26 @@
 
             const reader = new FileReader();
             reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    levels = data.map(level => ({
-                        map: level.map,
-                        spawn: level.spawn
-                    }));
-                    currentLevel = 0;
-                    updateLevelSelector();
-                    loadLevel();
-                } catch (error) {
-                    alert("Invalid map file");
-                }
+                importJSON(e.target.result);
+                
             };
             reader.readAsText(file);
+        }
+
+        function importJSON(data) {
+            try {
+                data = JSON.parse(data);
+                levels = data.map(level => ({
+                    map: level.map,
+                    spawn: level.spawn
+                }));
+                currentLevel = 0;
+                updateLevelSelector();
+                loadLevel(); 
+            } catch (error) {
+                console.error(error);
+                alert("Invalid map");
+            }
         }
 
         // Initialize
