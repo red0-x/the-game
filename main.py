@@ -80,7 +80,7 @@ class Player(pygame.sprite.Sprite):
             self.y_vel = 0
         
         if pygame.sprite.spritecollide(self, trampolines, False):
-            self.y_vel = -50
+            self.y_vel = -70
 
         if pygame.sprite.spritecollide(self, potions, False):
             reset_player()
@@ -228,6 +228,9 @@ while running:
 
     if player.rect.y > 900:
         level_num += 1
+        change_level(level_num)
+    elif player.rect.y < -100 and level_num > 0:
+        level_num -= 1
         change_level(level_num)
 
     # Draw everything
