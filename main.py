@@ -236,7 +236,7 @@ class Portal(Tile):
 
 texts = set()
 class Text(pygame.sprite.Sprite):
-    groups = (all_sprites, texts)
+    groups = (all_sprites, texts, tiles)
 
     def __init__(self, x, y):
         super().__init__()
@@ -246,7 +246,6 @@ class Text(pygame.sprite.Sprite):
 
         # Set a rect for positioning
         self.rect = self.image.get_rect()
-        self.rect.inflate_ip(-10, -10)
         self.rect.center = (x * 32 + 16, y * 32 + 16)
 
     def remove(self):
@@ -264,7 +263,6 @@ with open("map.json") as file:
     levels = json.load(file)
 # moved to map.json
 # player_start = [(320, 0), (250, 0), (600, 300)]
-level = 0
 
 block_types = [
     Block,
