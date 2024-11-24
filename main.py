@@ -278,7 +278,7 @@ all_sprites.add(player)
 def reset_player():
     player.y_vel = 0
     player.x_vel = 0
-    player.rect.x, player.rect.y = level["spawn"]
+    player.rect.center = level["spawn"]
 
 def change_level(level_num):
     global level
