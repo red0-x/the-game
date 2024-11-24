@@ -9,6 +9,7 @@ pygame.init()
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 640
 gross_elevation = 1000
+free_falling = False
 # Create the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Pygame Sprite Example")
@@ -17,6 +18,8 @@ idle4_ = pygame.image.load("images/player/idle/sprite_1.png")
 bg1 = pygame.transform.scale_by(pygame.image.load("images/background/01background.png"), 2).convert_alpha()
 bg2 = pygame.transform.scale_by(pygame.image.load("images/background/02background.png"), 2).convert_alpha()
 bg3 = pygame.transform.scale_by(pygame.image.load("images/background/03background.png"), 2).convert_alpha()
+rect1 = idle4.get_rect()
+rect2 = idle4_.get_rect()
 
 # Define a color
 WHITE = (255, 255, 255)
@@ -27,10 +30,10 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         # Load an image or create a surface
-        self.image = pygame.image.load("images/player/idle/idle-04.png")
+        self.image = idle4
 
         # Set a rect for positioning
-        self.rect = self.image.get_rect()
+        self.rect = self.image.get_rect().inflate(1.2, 1)
         self.rect.center = (player_start[0][0], player_start[0][1])
         self.y_vel = 0
         self.x_vel = 0
@@ -43,7 +46,7 @@ class Player(pygame.sprite.Sprite):
             self.image = idle4_
 
         
-        self.y_vel += 2
+        self.y_vel += 3
         if abs(self.x_vel) > 1.5:
             self.x_vel += self.x_vel * -0.10
         elif abs(self.x_vel) < 0.51:
@@ -54,9 +57,9 @@ class Player(pygame.sprite.Sprite):
             self.x_vel += 0.5
 
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            self.x_vel-= 0.75
+            self.x_vel-= 1.25
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            self.x_vel += 0.75
+            self.x_vel += 1.25
 
         # Move the player rect
         self.rect.x += self.x_vel
@@ -76,7 +79,7 @@ class Player(pygame.sprite.Sprite):
             self.y_vel = 0
             
         if (keys[pygame.K_UP] or keys[pygame.K_w]) and self.on_ground:
-            self.y_vel = -20
+            self.y_vel = -30
 
 next_id = 1
 class Block1(pygame.sprite.Sprite):
@@ -98,7 +101,7 @@ all_sprites = pygame.sprite.Group()
 
 with open("map.json") as file:
     maps = json.load(file)
-player_start = [(320, 0), (250, -200), (600, 300)]
+player_start = [(320, 0), (250, 0), (600, 300)]
 level = 0
 blocks_list = []
 block_types = [
@@ -147,9 +150,15 @@ while running:
         change_level(level)
 
     # Draw everything
-
-    gross_elevation = 1000 + 20 * level + player.rect.y / 32
-
+    if free_falling:
+        gross_elevation += 10
+        player.y_vel = 0
+        player.rect.y = 320
+        print(gross_elevation)
+    else:
+        gross_elevation = 1000 + 20 * level + player.rect.y / 32
+    if level == 2:
+        free_falling = True
     screen.fill(WHITE)  # Clear the screen
     screen.blit(bg1, (0, 0))
     screen.blit(bg2, (0, (1000 - gross_elevation) * 0.05))
@@ -160,7 +169,7 @@ while running:
     pygame.display.flip()
 
     # Limit the frame rate
-    clock.tick(60)
+    clock.tick(30)
 
 pygame.quit()
 sys.exit()
