@@ -53,7 +53,7 @@ class Player(pygame.sprite.Sprite):
             for _ in range(pixels // 30):
                 if not self.move_y(30):
                     return False
-            return self.move_y(copysign(pixels % 30, pixels))
+            return self.move_y(copysign(abs(pixels % 30), pixels))
         # moving down
         if pixels > 0:
             old_y = self.rect.bottom
