@@ -51,7 +51,7 @@ class Player(pygame.sprite.Sprite):
         # prevent phasing through walls
         if abs(pixels) > 30:
             for _ in range(pixels // 30):
-                if not self.move_y(30):
+                if not self.move_y(copysign(30, pixels)):
                     return False
             return self.move_y(copysign(abs(pixels % 30), pixels))
         # moving down
