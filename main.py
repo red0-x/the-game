@@ -308,9 +308,9 @@ while running:
     # draw player in front
     tiles.draw(screen)
     screen.blit(player.image, player.rect)
-    pygame.draw.rect(screen, "red", player.rect, 2)
-    for obj in trampolines:
-        pygame.draw.rect(screen, "blue", obj.rect, 2)
+    # pygame.draw.rect(screen, "red", player.rect, 2)
+    # for obj in trampolines:
+    #     pygame.draw.rect(screen, "blue", obj.rect, 2)
 
     # Flip the display
     pygame.display.flip()
