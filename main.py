@@ -249,7 +249,7 @@ class Text(pygame.sprite.Sprite):
         # Set a rect for positioning
         self.rect = self.image.get_rect()
         self.rect.inflate_ip(-10, -10)
-        self.rect.center = (x, y)
+        self.rect.center = (x * 32 + 16, y * 32 + 16)
 
     def remove(self):
         for set in self.groups:
