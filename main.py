@@ -331,7 +331,7 @@ async def main():
         # Draw everything
         if free_falling:
             gross_elevation += 1
-            cred_rect.y -= 2
+            cred_rect.y -= 0.05
             player.y_vel = 0
             player.hitbox.y += 2.5
             print(gross_elevation)
