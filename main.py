@@ -34,11 +34,12 @@ class Player(pygame.sprite.Sprite):
 
         # Set a rect for positioning
         self.rect = self.image.get_rect().inflate(1.2, 1)
-        self.rect.center = (player_start[0][0], player_start[0][1])
         self.y_vel = 0
         self.x_vel = 0
+        self.in_portal = False
 
     def update(self):
+        print(self.x_vel)
         keys = pygame.key.get_pressed()
         if self.x_vel > 0:
             self.image = idle4
@@ -84,6 +85,19 @@ class Player(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(self, potions, False):
             reset_player()
 
+        touching_portals = pygame.sprite.spritecollide(self, portals, False)
+        if touching_portals:
+            if not self.in_portal and len(portals) > 1:
+                portal = touching_portals[0]
+                dest = next(p for p in portals if portal != p)
+                player.rect.x = dest.rect.x
+                player.rect.y = dest.rect.y
+            self.in_portal = True
+        else:
+            self.in_portal = False
+
+
+
         if (keys[pygame.K_UP] or keys[pygame.K_w]) and self.on_ground:
             self.y_vel = -30
 
@@ -91,13 +105,13 @@ class Player(pygame.sprite.Sprite):
 all_sprites = pygame.sprite.Group()
 
 next_id = 1
-tiles = set()
+tiles = pygame.sprite.Group()
 class Tile(pygame.sprite.Sprite):
     image = None
-    sets = (all_sprites, tiles)
+    groups = (all_sprites, tiles)
     def __init__(self, x, y):
         super().__init__()
-        for set in self.sets:
+        for set in self.groups:
             set.add(self)
 
         # Set a rect for positioning
@@ -109,37 +123,43 @@ class Tile(pygame.sprite.Sprite):
         next_id += 1
     
     def remove(self):
-        for set in self.sets:
+        for set in self.groups:
             set.remove(self)
 
 blocks = set()
 class Block(Tile):
     image = pygame.image.load("images/tile1.png").convert()
-    sets = (all_sprites, blocks, tiles)
+    groups = (all_sprites, blocks, tiles)
         
 
 trampolines = set()
 class Trampoline(Tile):
     image = pygame.image.load("images/trampoline.webp").convert()
-    sets = (all_sprites, trampolines, tiles)
+    groups = (all_sprites, trampolines, tiles)
 
 potions = set()
 class Potion(Tile):
     image = pygame.image.load("images/potion.png").convert()
-    sets = (all_sprites, potions, tiles)
+    groups = (all_sprites, potions, tiles)
 
+portals = set()
+class Portal(Tile):
+    image = pygame.image.load("images/portal.png").convert()
+    groups = (all_sprites, portals, tiles)
 
 
 
 with open("map.json") as file:
     levels = json.load(file)
-player_start = [(320, 0), (250, 0), (600, 300)]
+# moved to map.json
+# player_start = [(320, 0), (250, 0), (600, 300)]
 level = 0
 
 block_types = [
     Block,
     Trampoline,
     Potion,
+    Portal,
 ]
 
 
@@ -197,7 +217,10 @@ while running:
     screen.blit(bg1, (0, 0))
     screen.blit(bg2, (0, (1000 - gross_elevation) * 0.05))
     screen.blit(bg3, (0, (1000 - gross_elevation) * 0.1))
-    all_sprites.draw(screen)
+
+    # draw player in front
+    tiles.draw(screen)
+    screen.blit(player.image, player.rect)
 
     # Flip the display
     pygame.display.flip()
