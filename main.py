@@ -33,13 +33,13 @@ class Player(pygame.sprite.Sprite):
         self.image = idle4
 
         # Set a rect for positioning
-        self.rect = self.image.get_rect().inflate(1.2, 1)
+        # why is it inflated?
+        self.rect = self.image.get_rect()#.inflate(1.2, 1)
         self.y_vel = 0
         self.x_vel = 0
         self.in_portal = False
 
     def update(self):
-        print(self.x_vel)
         keys = pygame.key.get_pressed()
         if self.x_vel > 0:
             self.image = idle4
@@ -92,6 +92,9 @@ class Player(pygame.sprite.Sprite):
                 dest = next(p for p in portals if portal != p)
                 player.rect.x = dest.rect.x
                 player.rect.y = dest.rect.y
+                # print(f"{pygame.sprite.spritecollide(self, blocks, False)=}")
+                # print(f"{player.rect=}")
+                # print(f"{dest.rect=}")
             self.in_portal = True
         else:
             self.in_portal = False
