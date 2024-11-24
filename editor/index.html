@@ -257,7 +257,6 @@
         // Add a new level
         function insertLevel() {
             levels.splice(currentLevel, 0, initLevel());
-            currentLevel = levels.length - 1;
             updateLevelSelector();
             loadLevel();
         }
