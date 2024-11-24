@@ -1,7 +1,7 @@
 import pygame, pygame.draw
 import json
 from math import copysign
-from random import randint
+from random import randint, choice
 
 # Initialize Pygame
 pygame.init()
@@ -26,16 +26,21 @@ bg2 = pygame.transform.scale_by(pygame.image.load("images/background/02backgroun
 bg3 = pygame.transform.scale_by(pygame.image.load("images/background/03background.png"), 2).convert_alpha()
 credits_image = pygame.image.load("images/text/credits.png").convert_alpha()
 cred_rect = credits_image.get_rect()
-title_image = pygame.transform.scale_by(pygame.image.load("images/title.png"), 6).convert_alpha()
+title_image = pygame.transform.scale_by(pygame.image.load("images/title.png"), 7).convert_alpha()
 cred_rect.center = (400, 1000)
 rect1 = idle4.get_rect()
 rect2 = idle4_.get_rect()
 title_screen = True
 title_rect = title_image.get_rect()
-title_rect.center = (400, 320)
+title_rect.center = (400, 280)
 # Define a color
 WHITE = (255, 255, 255)
 
+
+def check_collision(a, b):
+    return a.hitbox.colliderect(b.hitbox)
+def collide(sprite, group):
+    return pygame.sprite.spritecollide(sprite, group, False, check_collision)
 
 # Create a Sprite class
 class Player(pygame.sprite.Sprite):
@@ -45,11 +50,16 @@ class Player(pygame.sprite.Sprite):
         self.image = idle4
 
         # Set a rect for positioning
-        # why is it inflated?
-        self.rect = self.image.get_rect()#.inflate(1.2, 1)
+        self.hitbox = pygame.Rect(0, 0 , 16, 32)
         self.y_vel = 0
         self.x_vel = 0
         self.in_portal = False
+
+    @property
+    def rect(self):
+        rect = self.image.get_rect()
+        rect.center = self.hitbox.center
+        return rect
 
     def move_y(self, pixels):
         if pixels == 0:
@@ -62,24 +72,24 @@ class Player(pygame.sprite.Sprite):
             return self.move_y(copysign(abs(pixels % 30), pixels))
         # moving down
         if pixels > 0:
-            old_y = self.rect.bottom
+            old_y = self.hitbox.bottom
         else:
-            old_y = self.rect.top
-        self.rect.y += pixels
-        collided_blocks = pygame.sprite.spritecollide(self, blocks, False)
+            old_y = self.hitbox.top
+        self.hitbox.y += pixels
+        collided_blocks = collide(player, blocks)
         if not collided_blocks:
             return True
 
         # Undo movement if collision occurs
 
         if pixels > 0:
-            min_y = min(block.rect.top for block in collided_blocks)
-            self.rect.bottom = max(min_y, old_y)
+            min_y = min(block.hitbox.top for block in collided_blocks)
+            self.hitbox.bottom = max(min_y, old_y)
             # print(f"down {min_y=}, {old_y=}")
         else:
-            max_y = max(block.rect.bottom for block in collided_blocks)
+            max_y = max(block.hitbox.bottom for block in collided_blocks)
             # print(f"up {max_y=}, {old_y=}")
-            self.rect.top = min(max_y, old_y)
+            self.hitbox.top = min(max_y, old_y)
 
         return False
 
@@ -94,24 +104,24 @@ class Player(pygame.sprite.Sprite):
             return self.move_x(copysign(abs(pixels % 30), pixels))
         # moving down
         if pixels > 0:
-            old_x = self.rect.right
+            old_x = self.hitbox.right
         else:
-            old_x = self.rect.left
-        self.rect.x += pixels
-        collided_blocks = pygame.sprite.spritecollide(self, blocks, False)
+            old_x = self.hitbox.left
+        self.hitbox.x += pixels
+        collided_blocks = collide(self, blocks)
         if not collided_blocks:
             return True
 
         # Undo movement if collision occurs
 
         if pixels > 0:
-            min_x = min(block.rect.left for block in collided_blocks)
-            self.rect.right = max(min_x, old_x)
+            min_x = min(block.hitbox.left for block in collided_blocks)
+            self.hitbox.right = max(min_x, old_x)
             # print(f"down {min_y=}, {old_y=}")
         else:
-            max_x = max(block.rect.right for block in collided_blocks)
+            max_x = max(block.hitbox.right for block in collided_blocks)
             # print(f"up {max_y=}, {old_y=}")
-            self.rect.left = min(max_x, old_x)
+            self.hitbox.left = min(max_x, old_x)
 
         return False
 
@@ -149,25 +159,23 @@ class Player(pygame.sprite.Sprite):
                 self.on_ground = True
             self.y_vel = 0
         
-        if pygame.sprite.spritecollide(self, trampolines, False):
+        if collide(self, trampolines):
             self.y_vel = -70
             jump_sound.play()
 
-        if pygame.sprite.spritecollide(self, potions, False):
+        if collide(self, potions):
             reset_player()
 
-        touching_portals = pygame.sprite.spritecollide(self, portals, False)
+        touching_portals = collide(self, portals)
         if touching_portals:
-            if not self.in_portal and len(portals) > 1:
-                portal = touching_portals[0]
-                dest = next(p for p in portals if portal != p)
-                player.rect.x = dest.rect.x
-                player.rect.y = dest.rect.y
-                woosh_sound.play()
-                # print(f"{pygame.sprite.spritecollide(self, blocks, False)=}")
-                # print(f"{player.rect=}")
-                # print(f"{dest.rect=}")
-            self.in_portal = True
+            if not self.in_portal:
+                dests = [p for p in portals if p not in touching_portals]
+                if len(dests) > 0:
+                    portal = choice(touching_portals)
+                    dest = choice(dests)
+                    player.hitbox.center = dest.hitbox.center
+                    woosh_sound.play()
+                self.in_portal = True
         else:
             self.in_portal = False
 
@@ -180,24 +188,21 @@ class Player(pygame.sprite.Sprite):
 # Create a sprite group and add the player
 all_sprites = pygame.sprite.Group()
 
-next_id = 1
+
 tiles = pygame.sprite.Group()
 class Tile(pygame.sprite.Sprite):
     image = None
     groups = (all_sprites, tiles)
-    collison = None
     def __init__(self, x, y):
         super().__init__()
         for set in self.groups:
             set.add(self)
-
-        # Set a rect for positioning
+        
+        self.hitbox = pygame.Rect(x * 32, y * 32, 32, 32)
+        
         self.rect = self.image.get_rect()
-        # self.rect.inflate_ip(-10, -10)
-        self.rect.center = (x, y)
-        global next_id
-        self.id_num = next_id
-        next_id += 1
+        self.rect.center = self.hitbox.center
+        
     
     def remove(self):
         for set in self.groups:
@@ -227,6 +232,9 @@ portals = set()
 class Portal(Tile):
     image = pygame.image.load("images/portal.png").convert_alpha()
     groups = (all_sprites, portals, tiles)
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.hitbox.inflate_ip(-8, -8)
 
 texts = set()
 class Text(pygame.sprite.Sprite):
@@ -242,9 +250,6 @@ class Text(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.inflate_ip(-10, -10)
         self.rect.center = (x, y)
-        global next_id
-        self.id_num = next_id
-        next_id += 1
 
     def remove(self):
         for set in self.groups:
@@ -278,7 +283,7 @@ all_sprites.add(player)
 def reset_player():
     player.y_vel = 0
     player.x_vel = 0
-    player.rect.center = level["spawn"]
+    player.hitbox.center = level["spawn"]
 
 def change_level(level_num):
     global level
@@ -292,7 +297,7 @@ def change_level(level_num):
     for r, row in enumerate(map):
         for c, block in enumerate(row):
             if block != 0:
-                block_types[block - 1](c * 32 + 16, r * 32 + 16)
+                block_types[block - 1](c, r)
 change_level(level_num)
 current_clouds = []
 # Main game loop
@@ -305,13 +310,12 @@ while running:
     keys = pygame.key.get_pressed()
     mouse = pygame.mouse.get_pressed()
     # Update sprites
-    if not title_screen:
-        all_sprites.update()
+    all_sprites.update()
 
-    if player.rect.y > 900:
+    if player.hitbox.y > 900:
         level_num += 1
         change_level(level_num)
-    elif player.rect.y < -100 and level_num > 0:
+    elif player.hitbox.y < -100 and level_num > 0:
         level_num -= 1
         change_level(level_num)
 
@@ -320,7 +324,7 @@ while running:
         gross_elevation += 1
         cred_rect.y -= 2
         player.y_vel = 0
-        player.rect.y -= 2.5
+        player.hitbox.y -= 2.5
         print(gross_elevation)
         if len(current_clouds) < 1:
             for i in range(5):
@@ -332,14 +336,14 @@ while running:
             current_clouds[i].rect.y -= 4
 
     else:
-        gross_elevation = 1400 + 20 * level_num + player.rect.y / 32
+        gross_elevation = 1400 + 20 * level_num + player.hitbox.y / 32
     if level_num == len(levels) - 1:
         free_falling = True
     # -----SCREEN DRAWING-----
     screen.fill(WHITE)  # Clear the screen
     screen.blit(bg1, (0, 0))
-    screen.blit(bg2, (0, (1400 - gross_elevation) * 0.05))
-    screen.blit(bg3, (0, (1400 - gross_elevation) * 0.1))
+    screen.blit(bg2, (0, (1000 - gross_elevation) * 0.05))
+    screen.blit(bg3, (0, (1000 - gross_elevation) * 0.1))
     if not title_screen:
         for i in range(len(current_clouds)):
             screen.blit(current_clouds[i].image, current_clouds[i].rect)
@@ -351,11 +355,11 @@ while running:
         screen.blit(player.image, player.rect)
     if title_screen:
         screen.blit(title_image, title_rect)
-        if (keys[pygame.K_RETURN] or keys[pygame.K_SPACE] or mouse[0] or keys[pygame.K_f]):
+        if (keys[pygame.K_RETURN] or keys[pygame.K_SPACE] or mouse[0]):
             title_screen = False
-    # pygame.draw.rect(screen, "red", player.rect, 2)
-    # for obj in trampolines:
-    #     pygame.draw.rect(screen, "blue", obj.rect, 2)
+    # pygame.draw.rect(screen, "red", player.hitbox, 2)
+    # for obj in blocks:
+    #     pygame.draw.rect(screen, "blue", obj.hitbox, 2)
 
     # Flip the display
     pygame.display.flip()
