@@ -43,6 +43,7 @@ def collide(sprite, group):
 # Create a Sprite class
 class Player(pygame.sprite.Sprite):
     def __init__(self):
+        global level_num
         super().__init__()
         # Load an image or create a surface
         self.image = idle4
@@ -182,6 +183,10 @@ class Player(pygame.sprite.Sprite):
         if (keys[pygame.K_UP] or keys[pygame.K_w]) and self.on_ground:
             self.y_vel = -750
             jump_sound.play()
+        if (keys[pygame.K_p]):
+            global level_num
+            level_num = len(levels) - 1
+            change_level(len(levels) - 1)
 
 # Create a sprite group and add the player
 all_sprites = pygame.sprite.Group()
@@ -330,11 +335,11 @@ async def main():
 
         # Draw everything
         if free_falling:
-            gross_elevation += 1
-            cred_rect.y -= 0.05
+            gross_elevation += 15 * dt
+            cred_rect.y -= 75 * dt
             player.y_vel = 0
-            player.hitbox.y += 50 * dt
-            print(gross_elevation)
+            player.hitbox.y += 0.1 * dt
+            print(cred_rect)
             if len(current_clouds) < 1:
                 for i in range(5):
                     current_clouds.append(Cloud(randint(100, 560), randint(900, 3000)))
@@ -342,7 +347,7 @@ async def main():
                 if current_clouds[i].rect.y < -500:
                     current_clouds[i].rect.y = randint(800, 1000)
                     current_clouds[i].rect.x = randint(100, 560)
-                current_clouds[i].rect.y -= 4
+                current_clouds[i].rect.y -= 180 * dt
 
         else:
             gross_elevation = 1400 + 20 * level_num + player.hitbox.y / 32
@@ -356,11 +361,10 @@ async def main():
         if not title_screen:
             for i in range(len(current_clouds)):
                 screen.blit(current_clouds[i].image, current_clouds[i].rect)
-                print(f"rendering cloud at {current_clouds[i].rect.x}, {current_clouds[i].rect.y}")
             # draw player in front
+            tiles.draw(screen)
             if free_falling:
                 screen.blit(credits_image, cred_rect)
-            tiles.draw(screen)
             screen.blit(player.image, player.rect)
         if title_screen:
             screen.blit(title_image, title_rect)
@@ -376,7 +380,7 @@ async def main():
         # Limit the frame rate
 
         await asyncio.sleep(0)
-        dt = clock.tick() / 1000
+        dt = clock.tick(60) / 1000
 
     pygame.quit()
 
